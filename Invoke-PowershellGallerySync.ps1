@@ -10,7 +10,7 @@
 #>
 
 <#  
-    .DESCRIPTION  
+    .DESCRIPTION
         This script can synchronize your scripts & module of your github on the powershell gallery
 
     .NOTES  
@@ -169,7 +169,7 @@ foreach($Item in $Items) {
         Status  = $Status
         Message = $Message
     }
-    
+
     $Return += $ReturnObject
 }
 
