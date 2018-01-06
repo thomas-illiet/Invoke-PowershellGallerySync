@@ -7,10 +7,15 @@
 	.TAGS Tools
 	.LICENSEURI https://raw.githubusercontent.com/Netboot-France/Invoke-PowershellGallerySync/master/LICENSE
 	.PROJECTURI https://github.com/Netboot-France/Invoke-PowershellGallerySync
+    .ICONURI 
+    .EXTERNALMODULEDEPENDENCIES PowershellGet
+    .REQUIREDSCRIPTS 
+    .EXTERNALSCRIPTDEPENDENCIES 
+    .RELEASENOTES
 #>
 
 <#  
-    .DESCRIPTION
+    .DESCRIPTION  
         This script can synchronize your scripts & module of your github on the powershell gallery
 
     .NOTES  
@@ -20,12 +25,7 @@
         Last Update  : 2018-01-06
         Tested Date  : 2018-01-06
         Version	     : 1.0.0
-        
-    .REQUIRE
-        Software :
-            + PowershellGet
-                - https://www.powershellgallery.com/packages/PowerShellGet/
-        
+  
     .PARAMETER database
         json database file
 
@@ -44,9 +44,7 @@
             ]
         }
     
-   .EXAMPLE
-        Invoke-PowershellGallerySync -database database.json
- 
+
 #>
 
 [CmdletBinding()]
@@ -169,7 +167,7 @@ foreach($Item in $Items) {
         Status  = $Status
         Message = $Message
     }
-
+    
     $Return += $ReturnObject
 }
 
