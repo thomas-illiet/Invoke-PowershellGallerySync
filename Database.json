@@ -3,6 +3,11 @@
     "Author":"thomas.illiet",
     "Items":[
         {
+            "Name":"Invoke-PowershellGallerySync",
+            "Type":"Script",
+            "Repository":"Netboot-France/Invoke-PowershellGallerySync"
+        },
+        {
             "Name":"Invoke-ConnectMsol",
             "Type":"Script",
             "Repository":"Netboot-France/Invoke-ConnectMsol"
