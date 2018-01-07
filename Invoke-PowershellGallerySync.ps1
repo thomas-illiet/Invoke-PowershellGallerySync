@@ -1,13 +1,13 @@
 <#PSScriptInfo
-	.VERSION 1.0.0
-	.GUID 48950c67-924e-4114-a542-e54f83accadc
-	.AUTHOR thomas.illiet
-	.COMPANYNAME netboot.fr
-	.COPYRIGHT (c) 2017 Netboot. All rights reserved.
-	.TAGS Tools
-	.LICENSEURI https://raw.githubusercontent.com/Netboot-France/Invoke-PowershellGallerySync/master/LICENSE
-	.PROJECTURI https://github.com/Netboot-France/Invoke-PowershellGallerySync
-    .ICONURI 
+    .VERSION 1.0.1
+    .GUID 48950c67-924e-4114-a542-e54f83accadc
+    .AUTHOR thomas.illiet
+    .COMPANYNAME netboot.fr
+    .COPYRIGHT (c) 2017 Netboot. All rights reserved.
+    .TAGS Tools
+    .LICENSEURI https://raw.githubusercontent.com/Netboot-France/Invoke-PowershellGallerySync/master/LICENSE
+    .PROJECTURI https://github.com/Netboot-France/Invoke-PowershellGallerySync
+    .ICONURI https://raw.githubusercontent.com/Netboot-France/Invoke-PowershellGallerySync/master/ICON.png
     .EXTERNALMODULEDEPENDENCIES PowershellGet
     .REQUIREDSCRIPTS 
     .EXTERNALSCRIPTDEPENDENCIES 
@@ -15,43 +15,60 @@
 #>
 
 <#  
-    .DESCRIPTION  
-        This script can synchronize your scripts & module of your github on the powershell gallery
+    .DESCRIPTION
+        This script can synchronize your modules & scripts from GitHub to the PowerShell Gallery
 
     .NOTES  
         File Name    : Invoke-PowershellGallerySync.ps1
         Author       : Thomas ILLIET, contact@thomas-illiet.fr
-        Date	     : 2018-01-06
-        Last Update  : 2018-01-06
-        Tested Date  : 2018-01-06
-        Version	     : 1.0.0
+        Date         : 2018-01-06
+        Last Update  : 2018-01-07
+        Tested Date  : 2018-01-07
+        Version      : 1.0.1
   
     .PARAMETER database
-        json database file
+        Json database file ( you can find example file in my repository )
 
-        #----------------------
-        # Database.json
-        #----------------------
-        {
-            "ApiKey":"",
-            "Author":"thomas.illiet",
-            "Items":[
-                {
-                    "Name":"Invoke-PowershellGallerySync",
-                    "Type":"Script",
-                    "Repository":"Netboot-France/Invoke-PowershellGallerySync"
-                }
-            ]
-        }
-    
+    .EXAMPLE
+        PS> Invoke-PowershellGallerySync -Database Database.json | ft
+
+        Name                         Github Gallery Type   Status  Message
+        ----                         ------ ------- ----   ------  -------
+        Invoke-PowershellGallerySync 1.0.0  1.0.0   Script Success No Update
+
+    .EXAMPLE
+        PS> Invoke-PowershellGallerySync -Database Database.json | ft
+
+        DEBUG: Debug Output activated
+        DEBUG: This script was called with the -Debug parameter.
+        DEBUG: Loading the configuration from the file : Database.json
+        DEBUG: Item Processing (1) :
+        DEBUG: + Invoke-PowershellGallerySync
+        DEBUG: - Github  : 1.0.0
+        DEBUG: - Gallery : 1.0.0
+        DEBUG: - Result : Success - No Update
+
+        Name                         Github Gallery Type   Status  Message
+        ----                         ------ ------- ----   ------  -------
+        Invoke-PowershellGallerySync 1.0.0  1.0.0   Script Success No Update
 
 #>
 
 [CmdletBinding()]
 Param(
-    [Parameter(ParameterSetName='Database',Mandatory=$true)]
+    # Database
+    [Parameter(Mandatory=$true)]
     [String]$Database
 )
+
+# Debug
+If ($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent){
+     $DebugPreference="Continue"
+     Write-Debug "Debug Output activated"
+     Write-Debug "This script was called with the -Debug parameter."
+} Else {
+     $DebugPreference="SilentlyContinue"
+}
 
 # ++++++++++++++++++++++++++
 # + Internal Function
@@ -64,56 +81,62 @@ function New-TemporaryFolder {
 
 # ++++++++++++++++++++++++++
 # + Load configuration
-# ++++++++++++++++++++++++++
 if(Test-Path $Database) { 
     Try {
+        Write-Debug "Loading the configuration from the file : $Database"
         $Data = Get-Content -Raw -Path $Database | ConvertFrom-Json
     } Catch {
         throw "Unable to load configuration file : $_"
     }
 } else {
-    throw "Database file not found"
+    throw "Database file not found ! "
 }
 
 # ++++++++++++++++++++++++++
 # + Setup Variable
-# ++++++++++++++++++++++++++
 $ApiKey = $Data.ApiKey
 $Author = $Data.Author
 $Items = $Data.Items
 
 # ++++++++++++++++++++++++++
-# + Item Process
-# ++++++++++++++++++++++++++
+# + Item Processing
+Write-Debug "Item Processing ($($Items.count)) : "
 $Return = @()
 foreach($Item in $Items) {
 
+    write-debug "+ $($Item.Name)"
+
     # ++++++++++++++++++++++++++
     # + Check Version   
-    # ++++++++++++++++++++++++++
     [Version]$GithubVersion = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/$($Item.Repository)/master/VERSION"
-    
-    $Gallery = Find-Script -Name $Item.Name -ErrorAction SilentlyContinue | Where-Object {$_.Author -eq $Author}
+    $Gallery = Find-Script -Name $Item.Name -ErrorAction SilentlyContinue | Where-Object {$_.Author -eq $Author} 
     [Version]$GalleryVersion = $Gallery.Version
 
+    Write-Debug "- Github  : $GithubVersion"
+    Write-Debug "- Gallery : $GalleryVersion" 
 
+    # If GithubVersion is defined or
     if(($GithubVersion) -or ($GithubVersion -and $GalleryVersion -eq $null)){
 
         if(($GithubVersion -gt $GalleryVersion) -or ( $GalleryVersion -eq $null)){
+
+            Write-Debug "- Type : $($Item.Type)"
 
             if($Item.Type -eq "Script"){
                 Try{
                     $TmpFolder = New-TemporaryFolder
                     $SrcFile = "https://raw.githubusercontent.com/$($Item.Repository)/master/$($Item.Name).ps1"
                     $TmpFile = "$TmpFolder\$($Item.Name).ps1"
+                    Write-Debug "- Download Link : $SrcFile"
 
+                    # Download Script
                     $wc = New-Object System.Net.WebClient
                     $wc.Encoding = [System.Text.Encoding]::UTF8
                     $Content = $wc.DownloadString($SrcFile)
                     $Content -replace "`n", "`r`n" | Out-File $TmpFile
 
                     # Send to Gallery
-                    Publish-Script -path $TmpFile -NuGetApiKey $ApiKey -Verbose
+                    Publish-Script -path $TmpFile -NuGetApiKey $ApiKey
 
                     $Status = "Success"
                     $Message = "Update"
@@ -122,23 +145,25 @@ foreach($Item in $Items) {
                     $Message = $_.Exception.Message
                 } Finally {
                     Remove-Item $TmpFolder -Confirm:$false -Force -Recurse
+                    Write-Debug "- Result : $Status - $Message"
                 }
             } elseif ($Item.Type -eq "Module") {
                 Try{
-                    # Create Temporary folder
                     $TmpFolder = New-TemporaryFolder
+                    $SrcFile = "https://github.com/$($Item.Repository)/$($Item.Name)/archive/master.zip"
+                    Write-Debug "- Download Link : $SrcFile"
 
                     # Download Project
                     $wc = New-Object System.Net.WebClient
                     $wc.Encoding = [System.Text.Encoding]::UTF8
-                    $Content = $wc.DownloadString("https://github.com/$($Item.Repository)/$($Item.Name)/archive/master.zip")
+                    $Content = $wc.DownloadString($SrcFile)
                     $Content | Out-File "$TmpFolder\master.zip"
 
                     # Expand Archive
                     expand-archive -path "$TmpFolder\master.zip" -destinationpath "$TmpFolder\master"
 
                     # Send to Gallery
-                    Publish-Module -path "$TmpFolder\master" -NuGetApiKey $ApiKey -Verbose
+                    Publish-Module -path "$TmpFolder\master" -NuGetApiKey $ApiKey
 
                     $Status = "Success"
                     $Message = "Update"
@@ -147,16 +172,20 @@ foreach($Item in $Items) {
                     $Message = $_.Exception.Message
                 } Finally {
                     Remove-Item $TmpFolder -Confirm:$false -Force -Recurse
+                    Write-Debug "- Result : $Status - $Message"
                 }
             }
         } else {
             $Status = "Success"
             $Message = "No Update"
+            Write-Debug "- Result : $Status - $Message"
         }
     } else {
         $Status = "Error"
         $Message = "Version Error"
+        Write-Debug "- Result : $Status - $Message"
     }
+    
 
     # Return Management
     $ReturnObject = [PSCustomObject]@{
