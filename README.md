@@ -29,7 +29,7 @@ Invoke-PowershellGallerySync 1.0.0  1.0.0   Script Success No Update
 ```
 
 ```
-PS> Invoke-PowershellGallerySync -Database Database.json | ft
+PS> Invoke-PowershellGallerySync -Database Database.json -debug | ft
 
 DEBUG: Debug Output activated
 DEBUG: This script was called with the -Debug parameter.
