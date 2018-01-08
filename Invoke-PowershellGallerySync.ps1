@@ -135,7 +135,7 @@ foreach($Item in $Items) {
     # If GithubVersion is defined or
     if(($GithubVersion) -or ($GithubVersion -and $GalleryVersion -eq $null)){
 
-        if(($GithubVersion -eq $GalleryVersion) -or ( $GalleryVersion -eq $null)){
+        if(($GithubVersion -gt $GalleryVersion) -or ( $GalleryVersion -eq $null)){
 
             Write-Debug "- Type : $($Item.Type)"
 
