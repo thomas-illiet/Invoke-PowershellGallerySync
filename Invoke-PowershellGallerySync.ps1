@@ -1,5 +1,5 @@
 <#PSScriptInfo
-    .VERSION 1.0.1
+    .VERSION 1.0.2
     .GUID 48950c67-924e-4114-a542-e54f83accadc
     .AUTHOR thomas.illiet
     .COMPANYNAME netboot.fr
@@ -7,7 +7,7 @@
     .TAGS Tools
     .LICENSEURI https://raw.githubusercontent.com/Netboot-France/Invoke-PowershellGallerySync/master/LICENSE
     .PROJECTURI https://github.com/Netboot-France/Invoke-PowershellGallerySync
-    .ICONURI https://raw.githubusercontent.com/Netboot-France/Invoke-PowershellGallerySync/master/ICON.png
+    .ICONURI https://raw.githubusercontent.com/Netboot-France/Invoke-PowershellGallerySync/master/Resource/Icon.png
     .EXTERNALMODULEDEPENDENCIES PowershellGet
     .REQUIREDSCRIPTS 
     .EXTERNALSCRIPTDEPENDENCIES 
@@ -23,11 +23,28 @@
         Author       : Thomas ILLIET, contact@thomas-illiet.fr
         Date         : 2018-01-06
         Last Update  : 2018-01-07
-        Tested Date  : 2018-01-07
-        Version      : 1.0.1
+        Tested Date  : 2018-01-08
+        Version      : 1.0.2
   
     .PARAMETER database
         Json database file ( you can find example file in my repository )
+
+        {
+            "Gallery":{
+                "ApiKey":"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+                "Author":"thomas.illiet"
+            },
+            "Items":[
+                {
+                    "Name":"Get-O365IPAddress",
+                    "Type":"Script",
+                    "Owner":"Netboot-France",
+                    "Repository":"Get-O365IPAddress",
+                    "Branch":"master",
+                    "VersionFile":"Resource/VERSION"
+                }
+            ]
+        }
 
     .EXAMPLE
         PS> Invoke-PowershellGallerySync -Database Database.json | ft
@@ -94,8 +111,8 @@ if(Test-Path $Database) {
 
 # ++++++++++++++++++++++++++
 # + Setup Variable
-$ApiKey = $Data.ApiKey
-$Author = $Data.Author
+$ApiKey = $Data.Gallery.ApiKey
+$Author = $Data.Gallery.Author
 $Items = $Data.Items
 
 # ++++++++++++++++++++++++++
@@ -108,7 +125,7 @@ foreach($Item in $Items) {
 
     # ++++++++++++++++++++++++++
     # + Check Version   
-    [Version]$GithubVersion = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/$($Item.Repository)/master/VERSION"
+    [Version]$GithubVersion = Invoke-RestMethod -Uri "https://github.com/$($Item.Owner)/$($Item.Repository)/raw/$($Item.Branch)/$($Item.VersionFile)"
     $Gallery = Find-Script -Name $Item.Name -ErrorAction SilentlyContinue | Where-Object {$_.Author -eq $Author} 
     [Version]$GalleryVersion = $Gallery.Version
 
@@ -118,14 +135,14 @@ foreach($Item in $Items) {
     # If GithubVersion is defined or
     if(($GithubVersion) -or ($GithubVersion -and $GalleryVersion -eq $null)){
 
-        if(($GithubVersion -gt $GalleryVersion) -or ( $GalleryVersion -eq $null)){
+        if(($GithubVersion -eq $GalleryVersion) -or ( $GalleryVersion -eq $null)){
 
             Write-Debug "- Type : $($Item.Type)"
 
             if($Item.Type -eq "Script"){
                 Try{
                     $TmpFolder = New-TemporaryFolder
-                    $SrcFile = "https://raw.githubusercontent.com/$($Item.Repository)/master/$($Item.Name).ps1"
+                    $SrcFile = "https://github.com/$($Item.Owner)/$($Item.Repository)/raw/$($Item.Branch)/$($Item.Name).ps1"
                     $TmpFile = "$TmpFolder\$($Item.Name).ps1"
                     Write-Debug "- Download Link : $SrcFile"
 
