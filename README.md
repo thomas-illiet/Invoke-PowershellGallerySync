@@ -9,9 +9,9 @@ This script can synchronize your modules & scripts from GitHub to the PowerShell
   - **File Name**    : Invoke-PowershellGallerySync.ps1
   - **Author**       : Thomas ILLIET, contact@thomas-illiet.fr
   - **Date**         : 2018-01-06
-  - **Last Update**  : 2018-01-07
-  - **Tested Date**  : 2018-01-08
-  - **Version**      : 1.0.3
+  - **Last Update**  : 2018-01-10
+  - **Tested Date**  : 2018-01-10
+  - **Version**      : 1.1.0
 
 ## INSTALL
 ```
