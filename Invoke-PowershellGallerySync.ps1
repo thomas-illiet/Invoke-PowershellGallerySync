@@ -1,5 +1,5 @@
 <#PSScriptInfo
-    .VERSION 1.0.3
+    .VERSION 1.1.0
     .GUID 48950c67-924e-4114-a542-e54f83accadc
     .AUTHOR thomas.illiet
     .COMPANYNAME netboot.fr
@@ -24,7 +24,7 @@
         Date         : 2018-01-06
         Last Update  : 2018-01-07
         Tested Date  : 2018-01-10
-        Version      : 1.0.3
+        Version      : 1.1.0
   
     .PARAMETER database
         Json database file ( you can find example file in my repository )
@@ -191,7 +191,7 @@ foreach($Item in $Items) {
                     $Status = "Error"
                     $Message = $_.Exception.Message
                 } Finally {
-                    #Remove-Item $TmpFolder -Confirm:$false -Force -Recurse
+                    Remove-Item $TmpFolder -Confirm:$false -Force -Recurse
                     Write-Debug "- Result : $Status - $Message"
                 }
             }
