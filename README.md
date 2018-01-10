@@ -11,7 +11,7 @@ This script can synchronize your modules & scripts from GitHub to the PowerShell
   - **Date**         : 2018-01-06
   - **Last Update**  : 2018-01-07
   - **Tested Date**  : 2018-01-08
-  - **Version**      : 1.0.2
+  - **Version**      : 1.0.3
 
 ## INSTALL
 ```
